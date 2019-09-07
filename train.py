@@ -10,19 +10,24 @@ def eval_genomes(genomes, config):
         observation = env.reset()
         g.fitness = 0
         net = neat.nn.FeedForwardNetwork.create(g,config)
-        for t in range(1000):
-            # env.render()
-            if action < 0:
-                action = 0
-            observation, reward, done, info = env.step(action)
-
-            if net.activate(tuple(observation))[0] > 0:
-                action = 0
-            else:
-                action = 1
-            g.fitness += reward
-            if done:
-                break
+        reward_sum = 0
+        averager = 20
+        for _ in range(averager):
+            observation = env.reset()
+            g.fitness = 0
+            for t in range(1000):
+ 
+                if net.activate(tuple(observation))[0] > 0:
+                    action = 0
+                else:
+                    action = 1
+                observation, reward, done, info = env.step(action)
+                g.fitness += reward
+                if done:
+                    break
+            reward_sum += g.fitness
+            print("finished reward sum: {}    g.fitness:{}".format(reward_sum,g.fitness))
+        g.fitness = round(reward_sum/averager)
         print("Genome finished with a fitness of {}".format(g.fitness))
     print("Finished Generation")
     env.close()
